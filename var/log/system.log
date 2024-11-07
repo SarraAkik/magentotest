@@ -1,0 +1,34 @@
+[2024-11-06T17:24:27.543426+00:00] main.ERROR: Command "setup:" is ambiguous.
+Did you mean one of these?
+    setup:backup                        Takes backup of Magento Application code base, media and database
+    setup:config:set                    Creates or modifies the deployment configuration
+    setup:db-data:upgrade               Installs and upgrades data in the DB
+    setup:db-schema:upgrade             Installs and upgrades the DB schema
+    setup:db:status                     Checks if DB schema or data requires upgrade
+    setup:di:compile                    Generates DI configuration and all missing classes that can be auto-gen...
+    setup:performance:generate-fixtures Generates fixtures
+    setup:install                       Installs the Magento application
+    setup:store-config:set              Installs the store configuration. Deprecated since 2.2.0. Use config:se...
+    setup:rollback                      Rolls back Magento Application codebase, media and database
+    setup:upgrade                       Upgrades the Magento application, DB data, and schema
+    setup:uninstall                     Uninstalls the Magento application
+    setup:static-content:deploy         Deploys static view files.
+#0 D:\XAMPP\htdocs\mage2rock\vendor\symfony\console\Application.php(266): Symfony\Component\Console\Application->find('setup:')
+#1 D:\XAMPP\htdocs\mage2rock\vendor\magento\framework\Console\Cli.php(118): Symfony\Component\Console\Application->doRun(Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))
+#2 D:\XAMPP\htdocs\mage2rock\vendor\symfony\console\Application.php(175): Magento\Framework\Console\Cli->doRun(Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))
+#3 D:\XAMPP\htdocs\mage2rock\bin\magento(23): Symfony\Component\Console\Application->run()
+#4 {main} [] []
+[2024-11-06T17:31:01.524856+00:00] main.INFO: Source table payment_services_order_status_data_production_submitted_hash does not exist. Skipping data migration... [] []
+[2024-11-06T17:32:19.159129+00:00] main.ERROR: Unable to apply data patch Magento\Theme\Setup\Patch\Data\RegisterThemes for module Magento_Theme. Original exception message: Wrong file
+#0 D:\XAMPP\htdocs\mage2rock\setup\src\Magento\Setup\Model\Installer.php(1093): Magento\Framework\Setup\Patch\PatchApplier->applyDataPatch('Magento_Theme')
+#1 D:\XAMPP\htdocs\mage2rock\setup\src\Magento\Setup\Model\Installer.php(965): Magento\Setup\Model\Installer->handleDBSchemaData(Object(Magento\Setup\Module\DataSetup), 'data', Array)
+#2 [internal function]: Magento\Setup\Model\Installer->installDataFixtures(Array)
+#3 D:\XAMPP\htdocs\mage2rock\setup\src\Magento\Setup\Model\Installer.php(407): call_user_func_array(Array, Array)
+#4 D:\XAMPP\htdocs\mage2rock\setup\src\Magento\Setup\Console\Command\InstallCommand.php(237): Magento\Setup\Model\Installer->install(Array)
+#5 D:\XAMPP\htdocs\mage2rock\vendor\symfony\console\Command\Command.php(326): Magento\Setup\Console\Command\InstallCommand->execute(Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))
+#6 D:\XAMPP\htdocs\mage2rock\vendor\symfony\console\Application.php(1078): Symfony\Component\Console\Command\Command->run(Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))
+#7 D:\XAMPP\htdocs\mage2rock\vendor\symfony\console\Application.php(324): Symfony\Component\Console\Application->doRunCommand(Object(Magento\Setup\Console\Command\InstallCommand), Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))
+#8 D:\XAMPP\htdocs\mage2rock\vendor\magento\framework\Console\Cli.php(118): Symfony\Component\Console\Application->doRun(Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))
+#9 D:\XAMPP\htdocs\mage2rock\vendor\symfony\console\Application.php(175): Magento\Framework\Console\Cli->doRun(Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))
+#10 D:\XAMPP\htdocs\mage2rock\bin\magento(23): Symfony\Component\Console\Application->run()
+#11 {main} [] []
