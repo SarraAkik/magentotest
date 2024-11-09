@@ -22,8 +22,8 @@ pipeline {
         stage('Install PHP and Composer') {
             steps {
                 sh '''
-                    # Download PHP source tarball with xz compression
-                    wget https://www.php.net/distributions/php-8.1.0.tar.xz
+                    # Download PHP source tarball using curl
+                    curl -LO https://www.php.net/distributions/php-8.1.0.tar.xz
                     
                     # Extract the tarball using tar with xz compression
                     tar -xJf php-8.1.0.tar.xz
