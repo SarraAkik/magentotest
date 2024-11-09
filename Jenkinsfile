@@ -22,17 +22,19 @@ pipeline {
 stage('Install PHP and Composer') {
     steps {
         sh '''
+            # Update package list
+            apt update
             # Install PHP
-            sudo apt update
-            sudo apt install -y php
+            apt install -y php
             
             # Install Composer
             php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
             php composer-setup.php
-            sudo mv composer.phar /usr/local/bin/composer
+            mv composer.phar /usr/local/bin/composer
         '''
     }
 }
+
     stage('Install Dependencies') {
         steps {
             sh 'composer install'
