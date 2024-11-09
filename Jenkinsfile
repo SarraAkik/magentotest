@@ -1,17 +1,17 @@
 pipeline {
     agent any
 
-    environment {
-        MAGENTO_BASE_URL = "http://mage2rock.magento.com" // Remplacez par l'URL de votre application Magento
-        DB_HOST = "localhost"
-        DB_NAME = "mage2rock"
-        DB_USER = "mage2rock"
-        DB_PASSWORD = "sarra123"
-        ADMIN_USER = "rockadmin"
-        ADMIN_PASSWORD = "sarra123"
-        COMPOSER_HOME = "/var/www/.composer"  // Optionnel si Composer n'est pas installé globalement
-        GIT_REPO_URL = "https://github.com/your-user/your-magento-repo.git" // Remplacez par l'URL de votre dépôt Git
-    }
+environment {
+    MAGENTO_BASE_URL = "http://mage2rock.magento.com"  // Remplacez par l'URL de votre application Magento
+    DB_HOST = "localhost"
+    DB_NAME = "mage2rock"
+    DB_USER = "mage2rock"
+    DB_PASSWORD = "sarra123"
+    ADMIN_USER = "rockadmin"
+    ADMIN_PASSWORD = "sarra123"
+    GIT_REPO_URL = "https://github.com/SarraAkik/magentotest.git"  // URL de votre dépôt Git
+}
+
 
     stages {
         stage('Configure Git') {
