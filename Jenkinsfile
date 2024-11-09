@@ -9,58 +9,50 @@ pipeline {
         DB_PASSWORD = "sarra123"
         ADMIN_USER = "rockadmin"
         ADMIN_PASSWORD = "sarra123"
+        PHP_BIN_PATH = "/path/to/php"  // Update this to your PHP binary location
     }
 
     stages {
         stage('Checkout') {
             steps {
-                // Checkout the source code from the repository
+                // Clone Magento repository
                 checkout scm
             }
         }
 
         stage('Install PHP and Composer') {
             steps {
+                script {
+                    // Download PHP Binary if not already available
+                    sh '''
+                        if [ ! -f ${PHP_BIN_PATH}/php ]; then
+                            echo "PHP binary not found, downloading..."
+                            curl -LO https://www.php.net/distributions/php-8.1.0.tar.gz
+                            tar -xzf php-8.1.0.tar.gz
+                            cd php-8.1.0
+                            ./configure --prefix=${PHP_BIN_PATH} --enable-fpm --with-openssl --with-curl --enable-mbstring --with-mysqli
+                            make
+                            make install
+                        fi
+                    '''
+                }
+                // Install Composer globally
                 sh '''
-                    # Download PHP source tarball using curl
-                    curl -LO https://www.php.net/distributions/php-8.1.0.tar.gz
-                    
-                    # Extract the tarball using tar with gzip compression
-                    tar -xzf php-8.1.0.tar.gz
-                    
-                    # Navigate into the PHP source directory
-                    cd php-8.1.0
-                    
-                    # Configure and install PHP in a local directory
-                    ./configure --prefix=$HOME/php --enable-fpm --with-openssl --with-curl --enable-mbstring --with-mysqli
-                    make -j"$(nproc)"
-                    make install
-                    
-                    # Set PHP binaries path for current session
-                    export PATH=$HOME/php/bin:$PATH
-                    
-                    # Verify PHP installation
-                    php -v
-                    
-                    # Install Composer (without sudo)
-                    curl -sS https://getcomposer.org/installer | php -- --install-dir=$HOME --filename=composer
-                    
-                    # Add Composer to PATH for the current session
-                    export PATH=$HOME:$PATH
+                    curl -sS https://getcomposer.org/installer | php
+                    mv composer.phar /usr/local/bin/composer
                 '''
             }
         }
 
         stage('Install Dependencies') {
             steps {
-                // Install PHP dependencies using Composer
+                // Install Magento dependencies via Composer
                 sh 'composer install'
             }
         }
 
         stage('Setup Permissions') {
             steps {
-                // Set necessary file and directory permissions for Magento
                 sh '''
                     find var generated vendor pub/static pub/media app/etc -type f -exec chmod g+w {} +
                     find var generated vendor pub/static pub/media app/etc -type d -exec chmod g+ws {} +
@@ -70,9 +62,8 @@ pipeline {
 
         stage('Magento Setup') {
             steps {
-                // Run Magento setup and install command
                 sh '''
-                    php bin/magento setup:install \
+                    ${PHP_BIN_PATH}/bin/magento setup:install \
                         --base-url="${MAGENTO_BASE_URL}" \
                         --db-host="${DB_HOST}" \
                         --db-name="${DB_NAME}" \
@@ -93,29 +84,25 @@ pipeline {
 
         stage('Build Static Content') {
             steps {
-                // Deploy static content for Magento
-                sh 'php bin/magento setup:static-content:deploy -f'
+                sh '${PHP_BIN_PATH}/bin/magento setup:static-content:deploy -f'
             }
         }
 
         stage('Reindex Data') {
             steps {
-                // Reindex Magento data
-                sh 'php bin/magento indexer:reindex'
+                sh '${PHP_BIN_PATH}/bin/magento indexer:reindex'
             }
         }
 
         stage('Set Permissions Again') {
             steps {
-                // Set file and directory permissions again after Magento setup
                 sh 'chmod -R 777 var/ pub/ generated/'
             }
         }
 
         stage('Cache Flush') {
             steps {
-                // Flush Magento cache
-                sh 'php bin/magento cache:flush'
+                sh '${PHP_BIN_PATH}/bin/magento cache:flush'
             }
         }
     }
