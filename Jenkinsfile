@@ -15,7 +15,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 // Clone Magento repository
-                git credentialsId: 'your-credentials-id', url: 'your-magento-repo-url'
+                git credentialsId: 'sarra_ak', url: 'https://github.com/SarraAkik/magentotest.git/'
             }
         }
 
