@@ -23,24 +23,8 @@ pipeline {
         stage('Install PHP and Composer') {
             steps {
                 script {
-                    // Download PHP Binary if not already available
-                    sh '''
-                        if [ ! -f ${PHP_BIN_PATH}/php ]; then
-                            echo "PHP binary not found, downloading..."
-                            curl -LO https://www.php.net/distributions/php-8.1.0.tar.gz
-                            tar -xzf php-8.1.0.tar.gz
-                            cd php-8.1.0
-                            ./configure --prefix=${PHP_BIN_PATH} --enable-fpm --with-openssl --with-curl --enable-mbstring --with-mysqli
-                            make
-                            make install
-                        fi
-                    '''
+                     sh 'sudo apt update && sudo apt install -y php'
                 }
-                // Install Composer globally
-                sh '''
-                    curl -sS https://getcomposer.org/installer | php
-                    mv composer.phar /usr/local/bin/composer
-                '''
             }
         }
 
