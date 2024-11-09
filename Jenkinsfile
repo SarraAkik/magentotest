@@ -1,5 +1,5 @@
 pipeline {
-        agent any
+    agent any
 
     environment {
         MAGENTO_BASE_URL = "http://mage2rock.magento.com"
@@ -14,36 +14,43 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Clone Magento repository
-               checkout scm
+                checkout scm
             }
         }
 
-stage('Install PHP and Composer') {
-    steps {
-        sh '''
-            # Update package list
-            apt update
-            # Install PHP
-            apt install php-cli
-            
-            # Install Composer
-            php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-            php composer-setup.php
-            mv composer.phar /usr/local/bin/composer
-        '''
-    }
-}
+        stage('Install PHP and Composer') {
+            steps {
+                sh '''
+                    # Download PHP (example for PHP 8.1, adjust version as necessary)
+                    wget https://www.php.net/distributions/php-8.1.0.tar.bz2
+                    tar -xjf php-8.1.0.tar.bz2
+                    cd php-8.1.0
+                    ./configure --prefix=$HOME/php
+                    make
+                    make install
 
-    stage('Install Dependencies') {
-        steps {
-            sh 'composer install'
-    }
-}
+                    # Add PHP to the PATH
+                    export PATH=$HOME/php/bin:$PATH
+
+                    # Install Composer
+                    php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+                    php composer-setup.php
+                    mv composer.phar $HOME/bin/composer
+
+                    # Add Composer to the PATH
+                    export PATH=$HOME/bin:$PATH
+                '''
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'composer install'
+            }
+        }
 
         stage('Setup Permissions') {
             steps {
-                // Set necessary permissions
                 sh '''
                     find var generated vendor pub/static pub/media app/etc -type f -exec chmod g+w {} +
                     find var generated vendor pub/static pub/media app/etc -type d -exec chmod g+ws {} +
@@ -53,7 +60,6 @@ stage('Install PHP and Composer') {
 
         stage('Magento Setup') {
             steps {
-                // Run Magento setup install command
                 sh '''
                     php bin/magento setup:install \
                         --base-url="${MAGENTO_BASE_URL}" \
@@ -76,28 +82,24 @@ stage('Install PHP and Composer') {
 
         stage('Build Static Content') {
             steps {
-                // Generate static content for production
                 sh 'php bin/magento setup:static-content:deploy -f'
             }
         }
 
         stage('Reindex Data') {
             steps {
-                // Reindex data
                 sh 'php bin/magento indexer:reindex'
             }
         }
 
         stage('Set Permissions Again') {
             steps {
-                // Set permissions for generated and var directories
                 sh 'chmod -R 777 var/ pub/ generated/'
             }
         }
 
         stage('Cache Flush') {
             steps {
-                // Clear Magento cache
                 sh 'php bin/magento cache:flush'
             }
         }
