@@ -9,7 +9,7 @@ environment {
     DB_PASSWORD = "sarra123"
     ADMIN_USER = "rockadmin"
     ADMIN_PASSWORD = "sarra123"
-    GIT_REPO_URL = "https://github.com/SarraAkik/magentotest.git"  // URL de votre dépôt Git
+    
 }
 
 
