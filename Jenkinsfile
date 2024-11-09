@@ -14,6 +14,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
+                // Checkout the source code from the repository
                 checkout scm
             }
         }
@@ -21,35 +22,45 @@ pipeline {
         stage('Install PHP and Composer') {
             steps {
                 sh '''
-                    # Use curl to download PHP (example for PHP 8.1, adjust version as necessary)
-                    curl -LO https://www.php.net/distributions/php-8.1.0.tar.bz2
-                    tar -xjf php-8.1.0.tar.bz2
+                    # Download PHP source tarball with xz compression
+                    wget https://www.php.net/distributions/php-8.1.0.tar.xz
+                    
+                    # Extract the tarball using tar with xz compression
+                    tar -xJf php-8.1.0.tar.xz
+                    
+                    # Navigate into the PHP source directory
                     cd php-8.1.0
-                    ./configure --prefix=$HOME/php
-                    make
+                    
+                    # Configure and install PHP in a local directory
+                    ./configure --prefix=$HOME/php --enable-fpm --with-openssl --with-curl --enable-mbstring --with-mysqli
+                    make -j"$(nproc)"
                     make install
-
-                    # Add PHP to the PATH
+                    
+                    # Set PHP binaries path for current session
                     export PATH=$HOME/php/bin:$PATH
-
-                    # Install Composer
-                    curl -sS https://getcomposer.org/installer | php
-                    mv composer.phar $HOME/bin/composer
-
-                    # Add Composer to the PATH
-                    export PATH=$HOME/bin:$PATH
+                    
+                    # Verify PHP installation
+                    php -v
+                    
+                    # Install Composer (without sudo)
+                    curl -sS https://getcomposer.org/installer | php -- --install-dir=$HOME --filename=composer
+                    
+                    # Add Composer to PATH for the current session
+                    export PATH=$HOME:$PATH
                 '''
             }
         }
 
         stage('Install Dependencies') {
             steps {
+                // Install PHP dependencies using Composer
                 sh 'composer install'
             }
         }
 
         stage('Setup Permissions') {
             steps {
+                // Set necessary file and directory permissions for Magento
                 sh '''
                     find var generated vendor pub/static pub/media app/etc -type f -exec chmod g+w {} +
                     find var generated vendor pub/static pub/media app/etc -type d -exec chmod g+ws {} +
@@ -59,6 +70,7 @@ pipeline {
 
         stage('Magento Setup') {
             steps {
+                // Run Magento setup and install command
                 sh '''
                     php bin/magento setup:install \
                         --base-url="${MAGENTO_BASE_URL}" \
@@ -81,24 +93,28 @@ pipeline {
 
         stage('Build Static Content') {
             steps {
+                // Deploy static content for Magento
                 sh 'php bin/magento setup:static-content:deploy -f'
             }
         }
 
         stage('Reindex Data') {
             steps {
+                // Reindex Magento data
                 sh 'php bin/magento indexer:reindex'
             }
         }
 
         stage('Set Permissions Again') {
             steps {
+                // Set file and directory permissions again after Magento setup
                 sh 'chmod -R 777 var/ pub/ generated/'
             }
         }
 
         stage('Cache Flush') {
             steps {
+                // Flush Magento cache
                 sh 'php bin/magento cache:flush'
             }
         }
