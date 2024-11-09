@@ -12,6 +12,7 @@ pipeline {
         COMPOSER_HOME = "/var/www/.composer"  // Optionnel si Composer n'est pas installé globalement
         GIT_REPO_URL = "https://github.com/your-user/your-magento-repo.git" // Remplacez par l'URL de votre dépôt Git
     }
+
     stages {
         stage('Configure Git') {
             steps {
@@ -20,7 +21,7 @@ pipeline {
                 sh 'git config --global http.version HTTP/1.1'
             }
         }
-    stages {
+
         stage('Checkout') {
             steps {
                 // Checkout the source code from the repository
