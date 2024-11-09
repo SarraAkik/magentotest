@@ -35,9 +35,9 @@ pipeline {
                     def dbPassword = "${DB_PASSWORD}"
                     def dbName = "${DB_NAME}"
 
-                    // Exécuter une commande SQL dans MySQL
+                    // Vérification de la connexion à la base de données sans afficher les tables
                     sh """
-                        mysql -h ${dbHost} -u ${dbUser} -p${dbPassword} ${dbName} -e "SHOW TABLES;"
+                        mysql -h ${dbHost} -u ${dbUser} -p${dbPassword} ${dbName} -e "SELECT 1;"
                     """
                 }
             }
