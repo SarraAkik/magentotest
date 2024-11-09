@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        MAGENTO_BASE_URL = "http://mage2rock.magento.com"
+        MAGENTO_BASE_URL = "http://mage2rock.magento.com" // Remplacez par l'URL de votre application Magento
         DB_HOST = "localhost"
         DB_NAME = "mage2rock"
         DB_USER = "mage2rock"
@@ -12,85 +12,62 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
+        stage('Prepare Environment') {
             steps {
-                // Récupère le code source depuis le dépôt Git
-               checkout scm
+                echo "Preparing environment for Magento tests..."
+                
+                // Assure-toi que PHP est installé et que composer est installé dans ton image
+                sh 'php -v'
+                sh 'composer -v'
+                
+                // Installe les dépendances PHP
+                sh 'composer install'
+
+                // Lancer le serveur web PHP intégré pour Magento (optionnel)
+                sh 'php -S localhost:8000 -t /path/to/magento/root &'
             }
         }
 
-stage('Install Composer') {
-    steps {
-        // Télécharge et installe Composer
-        sh '''
-            curl -sS https://getcomposer.org/installer | php
-            mv composer.phar /usr/local/bin/composer
-        '''
-    }
-}
-
-
-        stage('Set Up Magento') {
+        stage('Run Selenium Tests') {
             steps {
-                // Installe Magento et configure la base de données
-                sh '''
-                    php bin/magento setup:install \
-                        --base-url=${MAGENTO_BASE_URL} \
-                        --db-host=${DB_HOST} \
-                        --db-name=${DB_NAME} \
-                        --db-user=${DB_USER} \
-                        --db-password=${DB_PASSWORD} \
-                        --admin-user=${ADMIN_USER} \
-                        --admin-password=${ADMIN_PASSWORD} \
-                        --language=en_US \
-                        --currency=USD \
-                        --timezone=America/Chicago \
-                        --use-rewrites=1
-                '''
-            }
-        }
+                echo "Running Selenium tests on Magento..."
 
-        stage('Start PHP Built-in Web Server') {
-            steps {
-                // Démarre le serveur PHP intégré pour l'application Magento
-                sh 'php -S 0.0.0.0:8080 -t pub'
-            }
-        }
-
-        stage('Run Tests with Selenium') {
-            steps {
-                // Lance les tests Selenium pour vérifier les fonctionnalités de Magento
-                // Exemple pour exécuter un script Selenium de test
-                sh '''
-                    # Commande pour exécuter les tests Selenium (modifiez selon votre configuration)
-                    mvn clean test
-                '''
+                // Exécuter les tests Selenium
+                sh 'php bin/phpunit --testsuite SeleniumTests'
             }
         }
 
         stage('Generate Allure Report') {
             steps {
-                // Générez le rapport Allure après l'exécution des tests
-                allure includeProperties: false, jdk: '', results: [[path: 'target/allure-results']]
+                echo "Generating Allure report..."
+                
+                // Générer les rapports avec Allure
+                sh 'allure generate --clean'
             }
         }
 
-        stage('Clean Up') {
+        stage('Publish Report') {
             steps {
-                // Nettoyage des fichiers temporaires ou autres actions post-test
-                sh 'rm -rf var/* pub/* generated/*'
+                echo "Publishing Allure report..."
+                
+                // Publier le rapport Allure dans Jenkins
+                allure includeProperties: false, reportBuildPolicy: 'ALWAYS', reportPath: 'allure-report'
             }
         }
     }
 
     post {
+        always {
+            echo "Cleaning up..."
+            
+            // Arrêter le serveur PHP si nécessaire
+            sh 'pkill -f "php -S localhost:8000"'
+        }
         success {
-            // Actions en cas de succès, comme notifier que les tests ont réussi
-            echo 'Tests passed successfully!'
+            echo "Pipeline completed successfully!"
         }
         failure {
-            // Actions en cas d'échec, comme envoyer une alerte ou une notification
-            echo 'Tests failed! Check the logs for more details.'
+            echo "Pipeline failed. Check logs for details."
         }
     }
 }
