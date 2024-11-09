@@ -27,21 +27,7 @@ pipeline {
             }
         }
 
-        stage('MySQL Setup') {
-            steps {
-                script {
-                    def dbHost = "${DB_HOST}"
-                    def dbUser = "${DB_USER}"
-                    def dbPassword = "${DB_PASSWORD}"
-                    def dbName = "${DB_NAME}"
 
-                    // Vérification de la connexion à la base de données sans afficher les tables
-                    sh """
-                        mysql -h ${dbHost} -u ${dbUser} -p${dbPassword} ${dbName} -e "SELECT 1;"
-                    """
-                }
-            }
-        }
 
         stage('Install Dependencies') {
             steps {
