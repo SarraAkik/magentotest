@@ -2,14 +2,13 @@ pipeline {
     agent any
 
 environment {
-    MAGENTO_BASE_URL = "http://mage2rock.magento.com"  // Remplacez par l'URL de votre application Magento
-    DB_HOST = "localhost"
+    MAGENTO_BASE_URL = "http://mage2rock.magento.com"
+    DB_HOST = "mysql"  // Nom du service MySQL dans Docker
     DB_NAME = "mage2rock"
     DB_USER = "mage2rock"
     DB_PASSWORD = "sarra123"
     ADMIN_USER = "rockadmin"
     ADMIN_PASSWORD = "sarra123"
-    
 }
 
 
