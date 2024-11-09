@@ -20,18 +20,18 @@ pipeline {
             }
         }
 
-        stage('Install Backend Dependencies') {
-            steps {
-                // Define the tool installations for PHP and Composer
-                def phpHome = tool name: 'PHP', type: 'ToolInstallation'
-                def composerHome = tool name: 'Composer', type: 'ToolInstallation'
+stage('Install Backend Dependencies') {
+    steps {
+        script {
+            // Define the tool installations for PHP and Composer
+            def phpHome = tool name: 'PHP', type: 'ToolInstallation'
+            def composerHome = tool name: 'Composer', type: 'ToolInstallation'
 
-                // Update the PATH environment variable to include PHP and Composer
-                env.PATH = "${phpHome}/bin:${composerHome}/bin:${env.PATH}"
+            // Update the PATH environment variable to include PHP and Composer
+            env.PATH = "${phpHome}/bin:${composerHome}/bin:${env.PATH}"
 
-                
-                // Install PHP dependencies using Composer
-                sh 'composer install'
+            // Install PHP dependencies using Composer
+            sh 'composer install'
         }
     }
 }
