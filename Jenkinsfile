@@ -9,65 +9,100 @@ pipeline {
         DB_PASSWORD = "sarra123"
         ADMIN_USER = "rockadmin"
         ADMIN_PASSWORD = "sarra123"
+        COMPOSER_HOME = "/var/www/.composer"  // Optionnel si Composer n'est pas installé globalement
+        GIT_REPO_URL = "https://github.com/your-user/your-magento-repo.git" // Remplacez par l'URL de votre dépôt Git
     }
 
     stages {
-        stage('Prepare Environment') {
+        stage('Checkout') {
             steps {
-                echo "Preparing environment for Magento tests..."
-                
-                // Assure-toi que PHP est installé et que composer est installé dans ton image
-                sh 'php -v'
-                sh 'composer -v'
-                
-                // Installe les dépendances PHP
+                // Checkout the source code from the repository
+                checkout scm
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                echo "Installing PHP dependencies with Composer..."
+                // Installer les dépendances PHP pour Magento
                 sh 'composer install'
-
-                // Lancer le serveur web PHP intégré pour Magento (optionnel)
-                sh 'php -S localhost:8000 -t /path/to/magento/root &'
             }
         }
 
-        stage('Run Selenium Tests') {
+        stage('Setup Permissions') {
             steps {
-                echo "Running Selenium tests on Magento..."
-
-                // Exécuter les tests Selenium
-                sh 'php bin/phpunit --testsuite SeleniumTests'
+                echo "Setting file and directory permissions..."
+                // Appliquer les permissions nécessaires aux fichiers et répertoires Magento
+                sh '''
+                    find var generated vendor pub/static pub/media app/etc -type f -exec chmod g+w {} +
+                    find var generated vendor pub/static pub/media app/etc -type d -exec chmod g+ws {} +
+                '''
             }
         }
 
-        stage('Generate Allure Report') {
+        stage('Magento Setup') {
             steps {
-                echo "Generating Allure report..."
-                
-                // Générer les rapports avec Allure
-                sh 'allure generate --clean'
+                echo "Setting up Magento..."
+                // Exécuter la commande de configuration de Magento
+                sh '''
+                    php bin/magento setup:install \
+                        --base-url="${MAGENTO_BASE_URL}" \
+                        --db-host="${DB_HOST}" \
+                        --db-name="${DB_NAME}" \
+                        --db-user="${DB_USER}" \
+                        --db-password="${DB_PASSWORD}" \
+                        --admin-firstname="Admin" \
+                        --admin-lastname="User" \
+                        --admin-email="admin@example.com" \
+                        --admin-user="${ADMIN_USER}" \
+                        --admin-password="${ADMIN_PASSWORD}" \
+                        --language="en_US" \
+                        --currency="USD" \
+                        --timezone="America/Chicago" \
+                        --use-rewrites="1"
+                '''
             }
         }
 
-        stage('Publish Report') {
+        stage('Build Static Content') {
             steps {
-                echo "Publishing Allure report..."
-                
-                // Publier le rapport Allure dans Jenkins
-                allure includeProperties: false, reportBuildPolicy: 'ALWAYS', reportPath: 'allure-report'
+                echo "Deploying static content for Magento..."
+                // Déployer les fichiers statiques pour Magento
+                sh 'php bin/magento setup:static-content:deploy -f'
+            }
+        }
+
+        stage('Reindex Data') {
+            steps {
+                echo "Reindexing Magento data..."
+                // Réindexer les données Magento
+                sh 'php bin/magento indexer:reindex'
+            }
+        }
+
+        stage('Set Permissions Again') {
+            steps {
+                echo "Setting file and directory permissions again after setup..."
+                // Appliquer les permissions une nouvelle fois après la configuration de Magento
+                sh 'chmod -R 777 var/ pub/ generated/'
+            }
+        }
+
+        stage('Cache Flush') {
+            steps {
+                echo "Flushing Magento cache..."
+                // Vider le cache Magento
+                sh 'php bin/magento cache:flush'
             }
         }
     }
 
     post {
-        always {
-            echo "Cleaning up..."
-            
-            // Arrêter le serveur PHP si nécessaire
-            sh 'pkill -f "php -S localhost:8000"'
-        }
         success {
-            echo "Pipeline completed successfully!"
+            echo 'Magento build and deployment successful!'
         }
         failure {
-            echo "Pipeline failed. Check logs for details."
+            echo 'Magento build or deployment failed.'
         }
     }
 }
