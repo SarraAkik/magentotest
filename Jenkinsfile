@@ -15,7 +15,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 // Récupère le code source depuis le dépôt Git
-                git 'https://your-repository-url.git'
+               checkout scm
             }
         }
 
