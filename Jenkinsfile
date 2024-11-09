@@ -19,12 +19,20 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
-            steps {
-                // Install PHP dependencies with Composer
-                sh 'composer install'
-            }
-        }
+      stage('Install Composer') {
+    steps {
+        sh '''
+            php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+            php composer-setup.php
+            sudo mv composer.phar /usr/local/bin/composer
+        '''
+    }
+}
+    stage('Install Dependencies') {
+        steps {
+            sh 'composer install'
+    }
+}
 
         stage('Setup Permissions') {
             steps {
