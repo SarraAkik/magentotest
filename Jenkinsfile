@@ -1,10 +1,5 @@
 pipeline {
-        agent {
-        docker {
-            image 'php:8.0-cli' // Use an image with PHP pre-installed
-            args '-v /usr/local/bin:/usr/local/bin' // Optional: mount the bin directory if needed
-        }
-    }
+        agent any
 
     environment {
         MAGENTO_BASE_URL = "http://mage2rock.magento.com"
