@@ -31,11 +31,15 @@ pipeline {
 
 stage('Install Dependencies') {
     steps {
+        echo "Checking PHP and Composer versions..."
+        sh 'php -v' // Vérifie la version de PHP
+        sh 'composer -v' // Vérifie la version de Composer
+
         echo "Installing PHP dependencies with Composer..."
-        sh 'composer --version' // Vérifie si Composer est disponible
-        sh 'composer install'
+        sh 'composer install --no-interaction -vvv' // Ajoute des détails en cas d’erreur
     }
 }
+
 
 
         stage('Setup Permissions') {
