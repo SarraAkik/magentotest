@@ -50,6 +50,21 @@ pipeline {
                 '''
             }
         }
+stage('MySQL Setup') {
+    steps {
+        script {
+            def dbHost = "${DB_HOST}"
+            def dbUser = "${DB_USER}"
+            def dbPassword = "${DB_PASSWORD}"
+            def dbName = "${DB_NAME}"
+
+            // Exécuter mysql dans un conteneur Docker pour tester la connexion
+            sh """
+                docker run --rm mysql:5.7 mysql -h ${dbHost} -u ${dbUser} -p${dbPassword} ${dbName} -e "SELECT 1;"
+            """
+        }
+    }
+}
 
         stage('Magento Setup') {
             steps {
