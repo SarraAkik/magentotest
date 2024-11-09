@@ -20,23 +20,23 @@ pipeline {
             }
         }
 
-        stage('Install PHP and Composer') {
-            steps {
-                script {
-                    // Download PHP Binary if not already available
+stage('Install Backend Dependencies') {
+    steps {
+        // Define the tool installations for PHP and Composer
+        def phpHome = tool name: 'PHP', type: 'ToolInstallation'
+        def composerHome = tool name: 'Composer', type: 'ToolInstallation'
 
-                        sh 'sudo apt update && sudo apt install -y php'
-                 
-                }
-            }
-        }
+        // Update the PATH environment variable to include PHP and Composer
+        env.PATH = "${phpHome}/bin:${composerHome}/bin:${env.PATH}"
 
-        stage('Install Dependencies') {
-            steps {
-                // Install Magento dependencies via Composer
-                sh 'composer install'
-            }
+        // Navigate to the server directory and install PHP dependencies with Composer
+        dir('server') {
+            // Install PHP dependencies using Composer
+            sh 'composer install'
         }
+    }
+}
+
 
         stage('Setup Permissions') {
             steps {
