@@ -23,10 +23,10 @@ pipeline {
             steps {
                 sh '''
                     # Download PHP source tarball using curl
-                    curl -LO https://www.php.net/distributions/php-8.1.0.tar.xz
+                    curl -LO https://www.php.net/distributions/php-8.1.0.tar.gz
                     
-                    # Extract the tarball using tar with xz compression
-                    tar -xJf php-8.1.0.tar.xz
+                    # Extract the tarball using tar with gzip compression
+                    tar -xzf php-8.1.0.tar.gz
                     
                     # Navigate into the PHP source directory
                     cd php-8.1.0
