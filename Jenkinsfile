@@ -25,7 +25,7 @@ stage('Install PHP and Composer') {
             # Update package list
             apt update
             # Install PHP
-            apt install -y php
+            apt install php-cli
             
             # Install Composer
             php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
