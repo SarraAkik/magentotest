@@ -1,16 +1,15 @@
 pipeline {
     agent any
 
-environment {
-    MAGENTO_BASE_URL = "http://mage2rock.magento.com"
-    DB_HOST = "mysql"  // Nom du service MySQL dans Docker
-    DB_NAME = "mage2rock"
-    DB_USER = "mage2rock"
-    DB_PASSWORD = "sarra123"
-    ADMIN_USER = "rockadmin"
-    ADMIN_PASSWORD = "sarra123"
-}
-
+    environment {
+        MAGENTO_BASE_URL = "http://mage2rock.magento.com"
+        DB_HOST = "mysql"  // Nom du service MySQL dans Docker
+        DB_NAME = "mage2rock"
+        DB_USER = "mage2rock"
+        DB_PASSWORD = "sarra123"
+        ADMIN_USER = "rockadmin"
+        ADMIN_PASSWORD = "sarra123"
+    }
 
     stages {
         stage('Configure Git') {
@@ -28,18 +27,32 @@ environment {
             }
         }
 
-stage('Install Dependencies') {
-    steps {
-        echo "Checking PHP and Composer versions..."
-        sh 'php -v' // Vérifie la version de PHP
-        sh 'composer -v' // Vérifie la version de Composer
+        stage('MySQL Setup') {
+            steps {
+                script {
+                    def dbHost = "${DB_HOST}"
+                    def dbUser = "${DB_USER}"
+                    def dbPassword = "${DB_PASSWORD}"
+                    def dbName = "${DB_NAME}"
 
-        echo "Installing PHP dependencies with Composer..."
-        sh 'composer install --no-interaction -vvv' // Ajoute des détails en cas d’erreur
-    }
-}
+                    // Exécuter une commande SQL dans MySQL
+                    sh """
+                        mysql -h ${dbHost} -u ${dbUser} -p${dbPassword} ${dbName} -e "SHOW TABLES;"
+                    """
+                }
+            }
+        }
 
+        stage('Install Dependencies') {
+            steps {
+                echo "Checking PHP and Composer versions..."
+                sh 'php -v' // Vérifie la version de PHP
+                sh 'composer -v' // Vérifie la version de Composer
 
+                echo "Installing PHP dependencies with Composer..."
+                sh 'composer install --no-interaction -vvv' // Ajoute des détails en cas d’erreur
+            }
+        }
 
         stage('Setup Permissions') {
             steps {
