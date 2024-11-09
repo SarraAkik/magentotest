@@ -19,12 +19,16 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
-            steps {
-                // Installe les dépendances Magento via Composer
-                sh 'composer install'
-            }
-        }
+stage('Install Composer') {
+    steps {
+        // Télécharge et installe Composer
+        sh '''
+            curl -sS https://getcomposer.org/installer | php
+            mv composer.phar /usr/local/bin/composer
+        '''
+    }
+}
+
 
         stage('Set Up Magento') {
             steps {
