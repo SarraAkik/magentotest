@@ -29,13 +29,14 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
-            steps {
-                echo "Installing PHP dependencies with Composer..."
-                // Installer les dépendances PHP pour Magento
-                sh 'composer install'
-            }
-        }
+stage('Install Dependencies') {
+    steps {
+        echo "Installing PHP dependencies with Composer..."
+        sh 'composer --version' // Vérifie si Composer est disponible
+        sh 'composer install'
+    }
+}
+
 
         stage('Setup Permissions') {
             steps {
