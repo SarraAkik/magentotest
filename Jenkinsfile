@@ -21,8 +21,8 @@ pipeline {
         stage('Install PHP and Composer') {
             steps {
                 sh '''
-                    # Download PHP (example for PHP 8.1, adjust version as necessary)
-                    wget https://www.php.net/distributions/php-8.1.0.tar.bz2
+                    # Use curl to download PHP (example for PHP 8.1, adjust version as necessary)
+                    curl -LO https://www.php.net/distributions/php-8.1.0.tar.bz2
                     tar -xjf php-8.1.0.tar.bz2
                     cd php-8.1.0
                     ./configure --prefix=$HOME/php
@@ -33,8 +33,7 @@ pipeline {
                     export PATH=$HOME/php/bin:$PATH
 
                     # Install Composer
-                    php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-                    php composer-setup.php
+                    curl -sS https://getcomposer.org/installer | php
                     mv composer.phar $HOME/bin/composer
 
                     # Add Composer to the PATH
