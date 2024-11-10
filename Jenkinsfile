@@ -1,7 +1,5 @@
 pipeline {
-    agent {
-     any
-    }
+  agent any
 
     environment {
         PYTHON_VERSION = '/venv/bin/python'  // Chemin vers l'interpréteur Python de l'environnement virtuel
