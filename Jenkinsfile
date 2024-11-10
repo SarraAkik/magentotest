@@ -5,6 +5,8 @@ pipeline {
         VENV_PATH = 'venv/bin'
         TEST_DIR = 'tests'
         ALLURE_RESULTS = 'allure-results'
+        EDGE_DRIVER_PATH = '/usr/local/bin/msedgedriver/msedgedriver.exe'
+        PATH = "$PATH:venv/bin"
     }
 
     stages {
@@ -28,23 +30,18 @@ pipeline {
             }
         }
 
-stage('Setup Edge Driver') {
-    steps {
-        // Copie le fichier exécutable msedgedriver.exe depuis son chemin exact
-        sh 'cp /usr/local/bin/msedgedriver/msedgedriver.exe venv/bin/'
-        
-        // Donne les permissions d'exécution
-        sh 'chmod +x venv/bin/msedgedriver.exe'
-        
-        // Ajoute le répertoire à la variable PATH
-        sh 'export PATH=$PATH:venv/bin'
-        
-        // Vérifie si le driver est bien copié
-        sh 'ls -l venv/bin'
-    }
-}
-
-
+        stage('Setup Edge Driver') {
+            steps {
+                // Copier le fichier msedgedriver.exe
+                sh "cp ${EDGE_DRIVER_PATH} venv/bin/"
+                
+                // Donner les permissions d'exécution
+                sh 'chmod +x venv/bin/msedgedriver.exe'
+                
+                // Vérifier si le driver est bien copié
+                sh 'ls -l venv/bin'
+            }
+        }
 
         stage('Run Tests') {
             steps {
