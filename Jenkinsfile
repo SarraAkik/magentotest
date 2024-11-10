@@ -2,130 +2,83 @@ pipeline {
     agent any
 
     environment {
-        MAGENTO_BASE_URL = "http://mage2rock.magento.com"
-        DB_HOST = "mysql"  // Nom du service MySQL dans Docker
-        DB_NAME = "mage2rock"
-        DB_USER = "mage2rock"
-        DB_PASSWORD = "sarra123"
-        ADMIN_USER = "rockadmin"
-        ADMIN_PASSWORD = "sarra123"
+        PYTHON_VERSION = "python3"  // Utilise python3 comme version par défaut
     }
 
     stages {
-        stage('Configure Git') {
+        // Étape de vérification et installation de Python
+        stage('Check and Install Python') {
             steps {
-                sh 'git config --global http.postBuffer 524288000'
-                sh 'git config --global core.compression 0'
-                sh 'git config --global http.version HTTP/1.1'
+                script {
+                    // Vérifie si Python est installé en essayant de récupérer la version
+                    def pythonInstalled = sh(script: 'which python3 || true', returnStdout: true).trim()
+
+                    if (pythonInstalled == '') {
+                        echo 'Python3 not found. Installing Python...'
+                        // Installe Python si ce n'est pas déjà fait (sur Ubuntu/Debian)
+                        sh '''
+                        sudo apt-get update
+                        sudo apt-get install -y python3 python3-pip
+                        '''
+                    } else {
+                        echo 'Python3 is already installed.'
+                    }
+                }
             }
         }
 
+        // Étape de checkout pour récupérer le code source
         stage('Checkout') {
             steps {
-                // Checkout the source code from the repository
                 checkout scm
             }
         }
 
-
-
-        stage('Install Dependencies') {
+        // Étape pour configurer l'environnement Python et installer les dépendances
+        stage('Setup Python Environment') {
             steps {
-                echo "Checking PHP and Composer versions..."
-                sh 'php -v' // Vérifie la version de PHP
-                sh 'composer -v' // Vérifie la version de Composer
-
-                echo "Installing PHP dependencies with Composer..."
-                sh 'composer install --no-interaction -vvv' // Ajoute des détails en cas d’erreur
+                script {
+                    // Créer un environnement virtuel et installer les dépendances nécessaires
+                    sh "${PYTHON_VERSION} -m venv venv"
+                    sh ". venv/bin/activate && pip install --upgrade pip && pip install selenium pytest allure-pytest"
+                }
             }
         }
 
-        stage('Setup Permissions') {
+        // Étape pour exécuter les tests Selenium
+        stage('Run Selenium Test') {
             steps {
-                echo "Setting file and directory permissions..."
-                // Appliquer les permissions nécessaires aux fichiers et répertoires Magento
-                sh '''
-                    find var generated vendor pub/static pub/media app/etc -type f -exec chmod g+w {} +
-                    find var generated vendor pub/static pub/media app/etc -type d -exec chmod g+ws {} +
-                '''
-            }
-        }
-stage('MySQL Setup') {
-    steps {
-        script {
-            def dbHost = "${DB_HOST}"
-            def dbUser = "${DB_USER}"
-            def dbPassword = "${DB_PASSWORD}"
-            def dbName = "${DB_NAME}"
-
-           
-        }
-    }
-}
-
-        stage('Magento Setup') {
-            steps {
-                echo "Setting up Magento..."
-                // Exécuter la commande de configuration de Magento
-                sh '''
-                    php bin/magento setup:install \
-                        --base-url="${MAGENTO_BASE_URL}" \
-                        --db-host="${DB_HOST}" \
-                        --db-name="${DB_NAME}" \
-                        --db-user="${DB_USER}" \
-                        --db-password="${DB_PASSWORD}" \
-                        --admin-firstname="Admin" \
-                        --admin-lastname="User" \
-                        --admin-email="admin@example.com" \
-                        --admin-user="${ADMIN_USER}" \
-                        --admin-password="${ADMIN_PASSWORD}" \
-                        --language="en_US" \
-                        --currency="USD" \
-                        --timezone="America/Chicago" \
-                        --use-rewrites="1"
-                '''
+                script {
+                    // Exécute les tests avec pytest et génère les résultats Allure
+                    sh """
+                    . venv/bin/activate
+                    ${PYTHON_VERSION} -m pytest --alluredir=allure-results tests/test_magento.py
+                    """
+                }
             }
         }
 
-        stage('Build Static Content') {
+        // Étape pour générer le rapport Allure
+        stage('Allure Report') {
             steps {
-                echo "Deploying static content for Magento..."
-                // Déployer les fichiers statiques pour Magento
-                sh 'php bin/magento setup:static-content:deploy -f'
-            }
-        }
-
-        stage('Reindex Data') {
-            steps {
-                echo "Reindexing Magento data..."
-                // Réindexer les données Magento
-                sh 'php bin/magento indexer:reindex'
-            }
-        }
-
-        stage('Set Permissions Again') {
-            steps {
-                echo "Setting file and directory permissions again after setup..."
-                // Appliquer les permissions une nouvelle fois après la configuration de Magento
-                sh 'chmod -R 777 var/ pub/ generated/'
-            }
-        }
-
-        stage('Cache Flush') {
-            steps {
-                echo "Flushing Magento cache..."
-                // Vider le cache Magento
-                sh 'php bin/magento cache:flush'
+                // Génère et publie le rapport Allure
+                allure includeProperties: false, jdk: '', reportBuildPolicy: 'ALWAYS', results: [[path: 'allure-results']]
             }
         }
     }
 
     post {
+        always {
+            // Nettoie l'environnement de travail après chaque exécution
+            cleanWs()
+        }
         success {
-            echo 'Magento build and deployment successful!'
+            // Affiche un message en cas de succès
+            echo 'Tests completed successfully!'
         }
         failure {
-            echo 'Magento build or deployment failed.'
+            // Affiche un message en cas d'échec
+            echo 'Tests failed. Check the Allure report for details.'
         }
     }
 }
