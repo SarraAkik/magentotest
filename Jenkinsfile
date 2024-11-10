@@ -27,43 +27,24 @@ pipeline {
                 sh "./${VENV_PATH}/pip install selenium pytest allure-pytest"
             }
         }
-stage('Configurer EdgeDriver') {
-    steps {
-        // Vérifier si le fichier msedgedriver.exe existe
-        sh 'ls -la /usr/local/bin/msedgedriver'
-
-        // Copier msedgedriver.exe vers le répertoire venv/bin/
-        sh 'cp /usr/local/bin/msedgedriver/msedgedriver.exe venv/bin/'
-
-        // Donner les permissions d'exécution au msedgedriver.exe
-        sh 'chmod +x venv/bin/msedgedriver.exe'
-    }
-}
-
-
-
-
-        stage('Exécuter les tests Selenium') {
+stages {
+        stage('Setup Edge Driver') {
             steps {
-                dir("${TEST_DIR}") {
-                    sh "../${VENV_PATH}/pytest test_magento.py --alluredir=../${ALLURE_RESULTS}"
-                }
+                sh 'mkdir -p venv/bin'
+                sh 'cp /usr/local/bin/msedgedriver/msedgedriver.exe venv/bin/'
+                sh 'chmod +x venv/bin/msedgedriver.exe'
+                sh 'export PATH=$PATH:venv/bin'
             }
         }
-
-        stage('Générer le rapport Allure') {
+        stage('Run Tests') {
             steps {
-                allure includeProperties: false, reportBuildPolicy: 'ALWAYS', results: [[path: "${ALLURE_RESULTS}"]]
+                sh '../venv/bin/pytest test_magento.py --alluredir=../allure-results'
             }
         }
     }
-
     post {
         always {
             cleanWs()
-        }
-        success {
-            echo 'Les tests se sont exécutés avec succès !'
         }
         failure {
             echo 'Les tests ont échoué. Vérifiez les rapports Allure.'
