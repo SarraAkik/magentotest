@@ -28,13 +28,15 @@ pipeline {
             }
         }
 
-        stage('Configurer EdgeDriver') {
-            steps {
-                sh 'cp /usr/local/bin/msedgedriver .'
-                sh 'chmod +x msedgedriver'
-                sh 'mv msedgedriver venv/bin/'
-            }
-        }
+stage('Configurer EdgeDriver') {
+    steps {
+        // Copier tout le contenu du répertoire msedgedriver vers le répertoire bin du venv
+        sh 'cp -r /usr/local/bin/msedgedriver/* venv/bin/'
+        // Donner les permissions d'exécution
+        sh 'chmod +x venv/bin/msedgedriver'
+    }
+}
+
 
         stage('Exécuter les tests Selenium') {
             steps {
