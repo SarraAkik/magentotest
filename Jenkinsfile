@@ -8,9 +8,15 @@ pipeline {
     }
 
     stages {
+        stage('Préparer Git') {
+            steps {
+                sh 'git config --global http.postBuffer 524288000' // 500MB
+            }
+        }
+
         stage('Cloner le dépôt') {
             steps {
-                git url: 'https://github.com/SarraAkik/magentotest.git', branch: 'main'
+                git url: 'https://github.com/votre-repository/magento-tests.git', branch: 'main'
             }
         }
 
@@ -37,8 +43,10 @@ pipeline {
 
     post {
         always {
-            // Nettoyage des dossiers temporaires
-            cleanWs()
+            // Entourer cleanWs avec node
+            node {
+                cleanWs()
+            }
         }
         success {
             echo 'Les tests se sont exécutés avec succès !'
