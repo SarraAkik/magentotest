@@ -1,72 +1,50 @@
 pipeline {
-  agent any
+    agent any
 
     environment {
-        PYTHON_VERSION = '/venv/bin/python'  // Chemin vers l'interpréteur Python de l'environnement virtuel
-        PYTHON_ENV = '/venv/bin/activate'   // Activation de l'environnement virtuel Python
-        ALLURE_RESULTS = 'allure-results'   // Répertoire pour les résultats des tests
-        ALLURE_REPORT = 'allure-report'     // Répertoire pour le rapport Allure
+        VENV_PATH = '/venv/bin'
+        TEST_DIR = 'tests'
+        ALLURE_RESULTS = 'allure-results'
     }
 
     stages {
-        stage('Checkout') {
+        stage('Cloner le dépôt') {
             steps {
-                checkout scm
+                git url: 'https://github.com/SarraAkik/magentotest.git', branch: 'main'
             }
         }
 
-        stage('Setup Python Environment') {
+        stage('Installer les dépendances') {
             steps {
-                script {
-                    // Créer un environnement virtuel Python et installer les dépendances nécessaires
-                    sh """
-                    . $PYTHON_ENV && pip install --upgrade pip && pip install selenium pytest allure-pytest
-                    """
+                sh "${VENV_PATH}/pip install -r requirements.txt"
+            }
+        }
+
+        stage('Exécuter les tests Selenium') {
+            steps {
+                dir("${TEST_DIR}") {
+                    sh "${VENV_PATH}/pytest --alluredir=${ALLURE_RESULTS}"
                 }
             }
         }
 
-        stage('Run Selenium Test') {
+        stage('Générer le rapport Allure') {
             steps {
-                script {
-                    // Exécuter les tests avec pytest et générer les résultats Allure
-                    sh """
-                    . $PYTHON_ENV && pytest --alluredir=${ALLURE_RESULTS} tests/test_magento.py
-                    """
-                }
-            }
-        }
-
-        stage('Generate Allure Report') {
-            steps {
-                script {
-                    // Générer le rapport Allure à partir des résultats des tests
-                    sh 'allure generate ${ALLURE_RESULTS} --clean -o ${ALLURE_REPORT}'
-                }
-            }
-        }
-
-        stage('Publish Allure Report') {
-            steps {
-                allure([
-                    includeProperties: true,
-                    jdk: '',
-                    results: [[path: "${ALLURE_REPORT}"]],
-                    reportBuildPolicy: 'ALWAYS'
-                ])
+                allure includeProperties: false, jdk: '', reportBuildPolicy: 'ALWAYS', results: [[path: "${ALLURE_RESULTS}"]]
             }
         }
     }
 
     post {
         always {
+            // Nettoyage des dossiers temporaires
             cleanWs()
         }
         success {
-            echo 'Tests completed successfully!'
+            echo 'Les tests se sont exécutés avec succès !'
         }
         failure {
-            echo 'Tests failed. Check the Allure report for details.'
+            echo 'Les tests ont échoué. Vérifiez les rapports Allure.'
         }
     }
 }
