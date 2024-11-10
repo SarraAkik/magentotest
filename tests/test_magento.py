@@ -17,8 +17,9 @@ def test_magento_homepage():
     options.add_argument('--disable-dev-shm-usage')
 
     # Définir le chemin du driver (assuré d'être en PATH par l'image Docker)
-    service = EdgeService(executable_path='/usr/local/bin/msedgedriver')
-    
+    # Utiliser le chemin complet du driver
+    service = EdgeService(executable_path='/usr/local/bin/msedgedriver/msedgedriver.exe')
+
     # Initialiser le WebDriver Edge
     driver = webdriver.Edge(service=service, options=options)
 
