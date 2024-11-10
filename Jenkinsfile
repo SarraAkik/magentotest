@@ -5,7 +5,7 @@ pipeline {
         VENV_PATH = 'venv/bin'
         TEST_DIR = 'tests'
         ALLURE_RESULTS = 'allure-results'
-        EDGE_DRIVER_PATH = '/usr/local/bin/msedgedriver/msedgedriver.exe'
+        EDGE_DRIVER_PATH = '/usr/local/bin/msedgedriver.exe'
         PATH = "$PATH:venv/bin"
     }
 
