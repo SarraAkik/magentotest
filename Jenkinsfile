@@ -1,37 +1,19 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'jenkins-magento-selenium'  // L'image Docker que vous avez construite
+            args '-u jenkins'  // Utiliser l'utilisateur Jenkins dans le conteneur
+        }
+    }
 
     environment {
-        PYTHON_VERSION = "python3"
+        PYTHON_VERSION = '/venv/bin/python'  // Chemin vers l'interpréteur Python de l'environnement virtuel
+        PYTHON_ENV = '/venv/bin/activate'   // Activation de l'environnement virtuel Python
+        ALLURE_RESULTS = 'allure-results'   // Répertoire pour les résultats des tests
+        ALLURE_REPORT = 'allure-report'     // Répertoire pour le rapport Allure
     }
 
     stages {
-        stage('Check and Install Python') {
-            steps {
-                script {
-                    // Vérifie si Python est installé
-                    def pythonInstalled = sh(script: 'which python3 || true', returnStdout: true).trim()
-
-                    if (pythonInstalled == '') {
-                        echo 'Python3 not found. Installing Python...'
-
-                        // Utiliser curl pour télécharger et installer Python
-                        sh '''
-                        curl -O https://www.python.org/ftp/python/3.9.6/Python-3.9.6.tgz
-                        tar -xzf Python-3.9.6.tgz
-                        cd Python-3.9.6
-                        ./configure --prefix=$HOME/python
-                        make
-                        make install
-                        export PATH=$HOME/python/bin:$PATH
-                        '''
-                    } else {
-                        echo 'Python3 is already installed.'
-                    }
-                }
-            }
-        }
-
         stage('Checkout') {
             steps {
                 checkout scm
@@ -41,9 +23,10 @@ pipeline {
         stage('Setup Python Environment') {
             steps {
                 script {
-                    // Créer un environnement virtuel et installer les dépendances nécessaires
-                    sh "${PYTHON_VERSION} -m venv venv"
-                    sh ". venv/bin/activate && pip install --upgrade pip && pip install selenium pytest allure-pytest"
+                    // Créer un environnement virtuel Python et installer les dépendances nécessaires
+                    sh """
+                    . $PYTHON_ENV && pip install --upgrade pip && pip install selenium pytest allure-pytest
+                    """
                 }
             }
         }
@@ -51,18 +34,31 @@ pipeline {
         stage('Run Selenium Test') {
             steps {
                 script {
-                    // Exécute les tests avec pytest et génère les résultats Allure
+                    // Exécuter les tests avec pytest et générer les résultats Allure
                     sh """
-                    . venv/bin/activate
-                    ${PYTHON_VERSION} -m pytest --alluredir=allure-results tests/test_magento.py
+                    . $PYTHON_ENV && pytest --alluredir=${ALLURE_RESULTS} tests/test_magento.py
                     """
                 }
             }
         }
 
-        stage('Allure Report') {
+        stage('Generate Allure Report') {
             steps {
-                allure includeProperties: false, jdk: '', reportBuildPolicy: 'ALWAYS', results: [[path: 'allure-results']]
+                script {
+                    // Générer le rapport Allure à partir des résultats des tests
+                    sh 'allure generate ${ALLURE_RESULTS} --clean -o ${ALLURE_REPORT}'
+                }
+            }
+        }
+
+        stage('Publish Allure Report') {
+            steps {
+                allure([
+                    includeProperties: true,
+                    jdk: '',
+                    results: [[path: "${ALLURE_REPORT}"]],
+                    reportBuildPolicy: 'ALWAYS'
+                ])
             }
         }
     }
