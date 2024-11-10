@@ -10,7 +10,7 @@ pipeline {
     }
 
     stages {
-        stage('Cloner le dépôt') {
+   stage('Cloner le dépôt') {
             steps {
                 git url: 'https://github.com/SarraAkik/magentotest.git', branch: 'main'
             }
