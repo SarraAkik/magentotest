@@ -27,7 +27,6 @@ pipeline {
                 sh "./${VENV_PATH}/pip install selenium pytest allure-pytest"
             }
         }
-
 stage('Configurer EdgeDriver') {
     steps {
         // Copier tout le contenu du répertoire msedgedriver vers le répertoire bin du venv
@@ -36,6 +35,7 @@ stage('Configurer EdgeDriver') {
         sh 'chmod +x venv/bin/msedgedriver'
     }
 }
+
 
 
         stage('Exécuter les tests Selenium') {
