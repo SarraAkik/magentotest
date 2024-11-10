@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        VENV_PATH = '/venv/bin'
+        VENV_PATH = 'venv/bin'
         TEST_DIR = 'tests'
         ALLURE_RESULTS = 'allure-results'
     }
@@ -16,28 +16,30 @@ pipeline {
 
         stage('Configurer l\'environnement virtuel Python') {
             steps {
-                sh 'python3 -m venv /venv'
-                sh '/venv/bin/pip install --upgrade pip'
+                // Créer un environnement virtuel dans le répertoire courant
+                sh 'python3 -m venv venv'
+                sh './venv/bin/pip install --upgrade pip'
             }
         }
 
         stage('Installer les dépendances Python') {
             steps {
-                sh "${VENV_PATH}/pip install selenium pytest allure-pytest"
+                sh "./${VENV_PATH}/pip install selenium pytest allure-pytest"
             }
         }
 
-        stage('Installer EdgeDriver') {
+        stage('Configurer EdgeDriver') {
             steps {
-                sh 'cp /usr/local/bin/msedgedriver /venv/bin/'
-                sh 'chmod +x /venv/bin/msedgedriver'
+                sh 'cp /usr/local/bin/msedgedriver .'
+                sh 'chmod +x msedgedriver'
+                sh 'mv msedgedriver venv/bin/'
             }
         }
 
         stage('Exécuter les tests Selenium') {
             steps {
                 dir("${TEST_DIR}") {
-                    sh "${VENV_PATH}/pytest test_magento.py --alluredir=${ALLURE_RESULTS}"
+                    sh "../${VENV_PATH}/pytest test_magento.py --alluredir=../${ALLURE_RESULTS}"
                 }
             }
         }
