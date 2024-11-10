@@ -28,17 +28,22 @@ pipeline {
             }
         }
 
-      stage('Setup Edge Driver') {
+stage('Setup Edge Driver') {
     steps {
-        // Téléchargement manuel du driver ou utilisation d'un chemin existant
-        sh 'cp /usr/local/bin/msedgedriver venv/bin/'
-        sh 'chmod +x venv/bin/msedgedriver'
+        // Copie le fichier exécutable msedgedriver.exe depuis son chemin exact
+        sh 'cp /usr/local/bin/msedgedriver/msedgedriver.exe venv/bin/'
+        
+        // Donne les permissions d'exécution
+        sh 'chmod +x venv/bin/msedgedriver.exe'
+        
+        // Ajoute le répertoire à la variable PATH
         sh 'export PATH=$PATH:venv/bin'
-        // Vérifier si le driver est bien présent
-        sh 'which msedgedriver || echo "msedgedriver not found"'
-        sh 'msedgedriver --version || echo "Cannot execute msedgedriver"'
+        
+        // Vérifie si le driver est bien copié
+        sh 'ls -l venv/bin'
     }
 }
+
 
 
         stage('Run Tests') {
