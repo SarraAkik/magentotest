@@ -18,7 +18,7 @@ def test_magento_homepage():
 
     # Définir le chemin du driver (assuré d'être en PATH par l'image Docker)
     # Utiliser le chemin complet du driver
-    service = EdgeService(executable_path='/usr/local/bin/msedgedriver/msedgedriver.exe')
+    service = EdgeService(executable_path='/usr/local/bin/msedgedriver.exe')
 
     # Initialiser le WebDriver Edge
     driver = webdriver.Edge(service=service, options=options)
