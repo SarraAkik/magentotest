@@ -29,12 +29,17 @@ pipeline {
         }
 stage('Configurer EdgeDriver') {
     steps {
-        // Copier tout le contenu du répertoire msedgedriver vers le répertoire bin du venv
-        sh 'cp -r /usr/local/bin/msedgedriver/* venv/bin/'
-        // Donner les permissions d'exécution
-        sh 'chmod +x venv/bin/msedgedriver'
+        // Vérifier si le fichier msedgedriver.exe existe
+        sh 'ls -la /usr/local/bin/msedgedriver'
+
+        // Copier msedgedriver.exe vers le répertoire venv/bin/
+        sh 'cp /usr/local/bin/msedgedriver/msedgedriver.exe venv/bin/'
+
+        // Donner les permissions d'exécution au msedgedriver.exe
+        sh 'chmod +x venv/bin/msedgedriver.exe'
     }
 }
+
 
 
 
