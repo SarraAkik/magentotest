@@ -15,9 +15,9 @@ pipeline {
                     if (pythonInstalled == '') {
                         echo 'Python3 not found. Installing Python...'
 
-                        // Télécharge et installe Python sans sudo (installation locale)
+                        // Utiliser curl pour télécharger et installer Python
                         sh '''
-                        wget https://www.python.org/ftp/python/3.9.6/Python-3.9.6.tgz
+                        curl -O https://www.python.org/ftp/python/3.9.6/Python-3.9.6.tgz
                         tar -xzf Python-3.9.6.tgz
                         cd Python-3.9.6
                         ./configure --prefix=$HOME/python
