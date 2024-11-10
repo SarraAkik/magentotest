@@ -2,23 +2,28 @@ pipeline {
     agent any
 
     environment {
-        PYTHON_VERSION = "python3"  // Utilise python3 comme version par défaut
+        PYTHON_VERSION = "python3"
     }
 
     stages {
-        // Étape de vérification et installation de Python
         stage('Check and Install Python') {
             steps {
                 script {
-                    // Vérifie si Python est installé en essayant de récupérer la version
+                    // Vérifie si Python est installé
                     def pythonInstalled = sh(script: 'which python3 || true', returnStdout: true).trim()
 
                     if (pythonInstalled == '') {
                         echo 'Python3 not found. Installing Python...'
-                        // Installe Python si ce n'est pas déjà fait (sur Ubuntu/Debian)
+
+                        // Télécharge et installe Python sans sudo (installation locale)
                         sh '''
-                        sudo apt-get update
-                        sudo apt-get install -y python3 python3-pip
+                        wget https://www.python.org/ftp/python/3.9.6/Python-3.9.6.tgz
+                        tar -xzf Python-3.9.6.tgz
+                        cd Python-3.9.6
+                        ./configure --prefix=$HOME/python
+                        make
+                        make install
+                        export PATH=$HOME/python/bin:$PATH
                         '''
                     } else {
                         echo 'Python3 is already installed.'
@@ -27,14 +32,12 @@ pipeline {
             }
         }
 
-        // Étape de checkout pour récupérer le code source
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
 
-        // Étape pour configurer l'environnement Python et installer les dépendances
         stage('Setup Python Environment') {
             steps {
                 script {
@@ -45,7 +48,6 @@ pipeline {
             }
         }
 
-        // Étape pour exécuter les tests Selenium
         stage('Run Selenium Test') {
             steps {
                 script {
@@ -58,10 +60,8 @@ pipeline {
             }
         }
 
-        // Étape pour générer le rapport Allure
         stage('Allure Report') {
             steps {
-                // Génère et publie le rapport Allure
                 allure includeProperties: false, jdk: '', reportBuildPolicy: 'ALWAYS', results: [[path: 'allure-results']]
             }
         }
@@ -69,15 +69,12 @@ pipeline {
 
     post {
         always {
-            // Nettoie l'environnement de travail après chaque exécution
             cleanWs()
         }
         success {
-            // Affiche un message en cas de succès
             echo 'Tests completed successfully!'
         }
         failure {
-            // Affiche un message en cas d'échec
             echo 'Tests failed. Check the Allure report for details.'
         }
     }
