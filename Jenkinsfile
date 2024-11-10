@@ -1,9 +1,6 @@
 pipeline {
     agent {
-        docker {
-            image 'jenkins-magento-selenium'  // L'image Docker que vous avez construite
-            args '-u jenkins'  // Utiliser l'utilisateur Jenkins dans le conteneur
-        }
+     any
     }
 
     environment {
