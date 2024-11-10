@@ -27,21 +27,25 @@ pipeline {
                 sh "./${VENV_PATH}/pip install selenium pytest allure-pytest"
             }
         }
-stages {
+
         stage('Setup Edge Driver') {
             steps {
+                // Vérifie si le fichier msedgedriver existe et le copie
                 sh 'mkdir -p venv/bin'
-                sh 'cp /usr/local/bin/msedgedriver/msedgedriver.exe venv/bin/'
+                sh 'cp /usr/local/bin/msedgedriver/msedgedriver.exe venv/bin/' // Vérifie le bon chemin
                 sh 'chmod +x venv/bin/msedgedriver.exe'
                 sh 'export PATH=$PATH:venv/bin'
             }
         }
+
         stage('Run Tests') {
             steps {
-                sh '../venv/bin/pytest test_magento.py --alluredir=../allure-results'
+                // Exécuter les tests avec pytest
+                sh "./${VENV_PATH}/pytest ${TEST_DIR}/test_magento.py --alluredir=${ALLURE_RESULTS}"
             }
         }
     }
+
     post {
         always {
             cleanWs()
