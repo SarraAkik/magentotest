@@ -4,7 +4,7 @@ pipeline {
     environment {
         VENV_PATH = 'venv/bin'
         TEST_DIR = 'tests'
-        EDGE_DRIVER_PATH = '/usr/local/bin/msedgedriver.exe
+        EDGE_DRIVER_PATH = '/usr/local/bin/msedgedriver
         PATH = "$PATH:venv/bin"
     }
 
@@ -32,7 +32,7 @@ pipeline {
         stage('Setup Edge Driver') {
             steps {
                 sh "cp ${EDGE_DRIVER_PATH} venv/bin/"
-                sh 'chmod +x venv/bin/msedgedriver.exe'
+                sh 'chmod +x venv/bin/msedgedriver'
                 sh 'ls -l venv/bin'
             }
         }
