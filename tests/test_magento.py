@@ -14,7 +14,7 @@ options.add_argument('--no-sandbox')
 options.add_argument('--disable-dev-shm-usage')
 
 # Définir le chemin vers le driver Edge
-service = EdgeService(executable_path='/usr/local/bin/msedgedriver')  # Ajustez le chemin selon votre configuration
+service = EdgeService(executable_path='/usr/local/bin/msedgedriver.exe')  # Ajustez le chemin selon votre configuration
 
 # Initialiser le WebDriver pour Edge
 driver = webdriver.Edge(service=service, options=options)
