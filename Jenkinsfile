@@ -4,7 +4,7 @@ pipeline {
     environment {
         VENV_PATH = 'venv/bin'
         TEST_DIR = 'tests'
-        EDGE_DRIVER_PATH = '/usr/local/bin/msedgedriver.exe'
+        EDGE_DRIVER_PATH = '/usr/local/bin/msedgedriver'
         PATH = "$PATH:venv/bin"
     }
 
