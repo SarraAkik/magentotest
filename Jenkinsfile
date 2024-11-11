@@ -10,15 +10,16 @@ pipeline {
     }
 
     stages {
-   stage('Cloner le dépôt') {
+        stage('Cloner le dépôt') {
             steps {
+                // Cloner le dépôt Git
                 git url: 'https://github.com/SarraAkik/magentotest.git', branch: 'main'
             }
         }
 
         stage('Configurer l\'environnement virtuel Python') {
             steps {
-                // Créer un environnement virtuel dans le répertoire courant
+                // Créer un environnement virtuel
                 sh 'python3 -m venv venv'
                 sh './venv/bin/pip install --upgrade pip'
             }
@@ -26,26 +27,27 @@ pipeline {
 
         stage('Installer les dépendances Python') {
             steps {
+                // Installer les dépendances nécessaires (selenium, pytest, allure-pytest)
                 sh "./${VENV_PATH}/pip install selenium pytest allure-pytest"
             }
         }
 
-        stage('Setup Edge Driver') {
+        stage('Configurer WebDriver Edge') {
             steps {
-                // Copier le fichier msedgedriver.exe
-                sh "cp ${EDGE_DRIVER_PATH} venv/bin/"
-                
-                // Donner les permissions d'exécution
+                // Copier le fichier msedgedriver.exe dans le répertoire venv/bin
+                sh "cp ${EDGE_DRIVER_PATH} venv/bin/msedgedriver.exe"
+
+                // Donner les permissions d'exécution au WebDriver
                 sh 'chmod +x venv/bin/msedgedriver.exe'
-                
+
                 // Vérifier si le driver est bien copié
                 sh 'ls -l venv/bin'
             }
         }
 
-        stage('Run Tests') {
+        stage('Exécuter les tests') {
             steps {
-                // Exécuter les tests avec pytest
+                // Exécuter les tests avec pytest et générer des résultats Allure
                 sh "./${VENV_PATH}/pytest ${TEST_DIR}/test_magento.py --alluredir=${ALLURE_RESULTS}"
             }
         }
@@ -53,9 +55,11 @@ pipeline {
 
     post {
         always {
+            // Nettoyer l'espace de travail après chaque exécution
             cleanWs()
         }
         failure {
+            // Message en cas d'échec du test
             echo 'Les tests ont échoué. Vérifiez les rapports Allure.'
         }
     }
