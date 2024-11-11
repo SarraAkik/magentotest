@@ -37,6 +37,7 @@ class TestMagentoAdmin:
         try:
             # Accéder à la page de connexion de Magento
             driver.get("http://mage2rock.magento.com/admin/")  # L'URL de la page de connexion de Magento
+            time.sleep(500)  
 
             # Attendre que le formulaire de connexion soit visible
             WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.ID, "username")))
