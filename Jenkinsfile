@@ -2,11 +2,15 @@ pipeline {
     agent any
 
     environment {
-        VENV_PATH = 'venv/bin'
-        TEST_DIR = 'tests'
-        EDGE_DRIVER_PATH = '/usr/local/bin/msedgedriver'
-        PATH = "$PATH:venv/bin"
-    }
+environment {
+    VENV_PATH = 'venv/bin'
+    TEST_DIR = 'tests'
+    EDGE_DRIVER_PATH = 'C:\\Users\\hamza\\Downloads\\edgedriver_win64\\msedgedriver.exe'
+    PATH = "$PATH:venv/bin"
+}
+steps {
+    sh 'git config --global http.postBuffer 524288000'
+}
 
     stages {
         stage('Cloner le dépôt') {
