@@ -12,28 +12,29 @@ steps {
     sh 'git config --global http.postBuffer 524288000'
 }
 
-    stages {
-        stage('Cloner le dépôt') {
+  
+        stages {
+        stage('Checkoutscm') {
             steps {
-                git url: 'https://github.com/SarraAkik/magentotest.git', branch: 'main'
+                // Checkout the source code from the repository
+                checkout scm
             }
         }
 
-        stage('Configurer l\'environnement virtuel Python') {
+        stage('build') {
             steps {
                 sh 'python3 -m venv venv'
                 sh './venv/bin/pip install --upgrade pip'
                 sh './venv/bin/pip install selenium pytest'
             }
-        }
+        
 
-        stage('Installer les dépendances Python') {
+       
             steps {
                 sh "./${VENV_PATH}/pip install selenium pytest"
             }
-        }
-
-        stage('Setup Edge Driver') {
+      
+       
             steps {
                 sh "cp ${EDGE_DRIVER_PATH} venv/bin/"
                 sh 'chmod +x venv/bin/msedgedriver'
@@ -41,9 +42,9 @@ steps {
             }
         }
 
-        stage('Run Tests') {
+        stage('Test') {
             steps {
-                sh "./${VENV_PATH}/pytest ${TEST_DIR}/test_magento.py"
+                sh "./${VENV_PATH}/pytest ${TEST_DIR}/"
             }
         }
     }
