@@ -5,21 +5,20 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.edge.service import Service as EdgeService
 from selenium.webdriver.edge.options import Options
-from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import Select
 
-# Configurer les options pour Edge
+# Configuration du navigateur Edge
 options = Options()
-options.add_argument('--headless')  # Lancer le navigateur en mode sans tête
+options.add_argument('--headless')  # Mode sans tête
 options.add_argument('--no-sandbox')
 options.add_argument('--disable-dev-shm-usage')
 
-# Définir le chemin vers le driver Edge
+# Chemin vers le driver Edge
 service = EdgeService(executable_path='msedgedriver.exe')
 
-
-@allure.feature("Magento Admin Login Test")
+@allure.feature("Magento Admin Order Creation Test")
 class TestMagentoAdmin:
 
     @pytest.fixture(scope='class')
@@ -34,26 +33,25 @@ class TestMagentoAdmin:
         allure.attach.file(filename, attachment_type=allure.attachment_type.PNG)
         print(f"Capture d'écran prise : {filename}")
 
-    @allure.story("Connexion à Magento")
-    def test_magento_login(self, driver):
+    @allure.story("Création d'une nouvelle commande dans Magento")
+    def test_create_order(self, driver):
         try:
             self.login_to_magento(driver)
-            self.navigate_to_catalog(driver)
-            self.add_simple_product(driver)
-            self.add_simple_product_details(driver)
+            self.navigate_to_sales(driver)
+            self.create_new_order(driver)
+            self.fill_billing_address(driver)
+            self.submit_order(driver)
         except Exception as e:
             self.handle_error(driver, e)
 
     def login_to_magento(self, driver):
         with allure.step("Accéder à la page de connexion de Magento"):
             driver.get("http://mage2rock.magento.com/admin/")
-            WebDriverWait(driver, 10).until(
-                EC.visibility_of_element_located((By.ID, "username"))
-            )
+            WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.ID, "username")))
 
         with allure.step("Saisir les informations d'identification"):
             driver.find_element(By.ID, "username").send_keys("rockadmin")
-            driver.find_element(By.ID, "login").send_keys("sarra123")
+            driver.find_element(By.ID, "login").send_keys("sarra1234")
             self.take_screenshot(driver, "before_click_login.png")
 
         with allure.step("Cliquer sur le bouton de connexion"):
@@ -61,98 +59,73 @@ class TestMagentoAdmin:
                 EC.element_to_be_clickable((By.CSS_SELECTOR, ".action-login"))
             )
             login_button.click()
+            time.sleep(3)  # Assurer le chargement après la connexion
             self.take_screenshot(driver, "sign_in_success.png")
 
-    def navigate_to_catalog(self, driver):
-        with allure.step("Ouvrir le menu 'Catalog'"):
-            catalog_menu = WebDriverWait(driver, 10).until(
-                EC.element_to_be_clickable((By.ID, "menu-magento-catalog-catalog"))
+    def navigate_to_sales(self, driver):
+        with allure.step("Accéder au menu 'Sales'"):
+            sales_menu = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.ID, "menu-magento-sales-sales"))
             )
-            catalog_menu.click()
-            time.sleep(2)  # Petit délai pour s'assurer que le menu se déploie
-            self.take_screenshot(driver, "catalog_menu_opened.png")
+            sales_menu.click()
+            time.sleep(20)
+            self.take_screenshot(driver, "sales_menu_opened.png")
+            time.sleep(2)
 
-        with allure.step("Vérifier la visibilité du sous-menu 'Products'"):
-            products_submenu = WebDriverWait(driver, 10).until(
-                EC.visibility_of_element_located((By.CSS_SELECTOR, "li.item-catalog-products.level-2"))
+        with allure.step("Accéder à 'Orders' dans le menu Sales"):
+            orders_submenu = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.XPATH, "//a[contains(@href, '/sales/order/index')]"))
             )
-            actions = ActionChains(driver)
-            actions.move_to_element(products_submenu).perform()
-            self.take_screenshot(driver, "hover_on_catalog_products_submenu.png")
-            products_submenu.find_element(By.TAG_NAME, "a").click()
-            time.sleep(40)
-            self.take_screenshot(driver, "products_page.png")
-
-    def add_simple_product(self, driver):
-        with allure.step("Ajouter un produit - Sélectionner 'Simple Product'"):
-            add_product_button = WebDriverWait(driver, 10).until(
-                EC.element_to_be_clickable((By.CSS_SELECTOR, "button.action-toggle.primary.add"))
-            )
-            add_product_button.click()
+            orders_submenu.click()
             time.sleep(10)
-            self.take_screenshot(driver, "add_product_button.png")
+            self.take_screenshot(driver, "orders_page_opened.png")
+            time.sleep(2)
 
-            simple_product_option = WebDriverWait(driver, 10).until(
-                EC.element_to_be_clickable((By.CSS_SELECTOR, "span[title='Simple Product']"))
+        with allure.step("Cliquer sur 'Create New Order'"):
+            create_order_button = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.ID, "add"))
             )
-            simple_product_option.click()
-            time.sleep(60)
-            WebDriverWait(driver, 10).until(
-                EC.visibility_of_element_located((By.CSS_SELECTOR, ".page-title"))
+            create_order_button.click()
+            time.sleep(10)  # Temps pour charger la page
+            self.take_screenshot(driver, "create_order_page_opened.png")
+
+    def create_new_order(self, driver):
+        with allure.step("Sélectionner un client pour la commande"):
+            select_customer_button = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.XPATH, "//tr[@data-role='row' and @title='2']"))
             )
-            self.take_screenshot(driver, "simple_product_page.png")
-            print("Produit 'Simple Product' sélectionné avec succès.")
+            select_customer_button.click()
+            time.sleep(50)  # Temps pour charger les informations du client
+            self.take_screenshot(driver, "customer_selected.png")
 
-    def add_simple_product_details(self, driver):
-        with allure.step("Remplir les détails du produit"):
-            driver.find_element(By.NAME, "product[name]").send_keys("Product Name Example")
-            self.take_screenshot(driver, "product_name_filled.png")
+    def fill_billing_address(self, driver):
+        with allure.step("Remplir les informations de facturation"):
+            driver.find_element(By.NAME, "order[billing_address][firstname]").send_keys("Sarra")
+            driver.find_element(By.NAME, "order[billing_address][lastname]").send_keys("Noursene")
+            driver.find_element(By.NAME, "order[billing_address][street][0]").send_keys("1234 Elm Street")
+            driver.find_element(By.NAME, "order[billing_address][city]").send_keys("monastir")
+            driver.find_element(By.NAME, "order[billing_address][postcode]").send_keys("90001")
+            driver.find_element(By.NAME, "order[billing_address][telephone]").send_keys("99408311")
+            self.take_screenshot(driver, "billing_address_filled.png")
 
-            driver.find_element(By.NAME, "product[sku]").send_keys("SKU12345")
-            self.take_screenshot(driver, "product_sku_filled.png")
-
-            driver.find_element(By.NAME, "product[price]").send_keys("49.99")
-            self.take_screenshot(driver, "product_price_filled.png")
-
-            driver.find_element(By.NAME, "product[quantity_and_stock_status][qty]").send_keys("100")
-            self.take_screenshot(driver, "product_quantity_filled.png")
-
-            driver.find_element(By.NAME, "product[weight]").send_keys("1.5")
-            self.take_screenshot(driver, "product_weight_filled.png")
-
-            driver.find_element(By.NAME, "product[news_from_date]").send_keys("11/26/2024")
-            self.take_screenshot(driver, "product_news_from_date_filled.png")
-
-            driver.find_element(By.NAME, "product[news_to_date]").send_keys("12/10/2024")
-            self.take_screenshot(driver, "product_news_to_date_filled.png")
-
-            country_dropdown = driver.find_element(By.NAME, "product[country_of_manufacture]")
-            country_dropdown.click()
-            country_dropdown.find_element(By.XPATH, "//option[@value='US']").click()
-            self.take_screenshot(driver, "product_country_filled.png")
-
-        with allure.step("Enregistrer le produit avec l'option 'Save and New'"):
-            save_button = WebDriverWait(driver, 10).until(
-                EC.element_to_be_clickable((By.CSS_SELECTOR, ".action-toggle.primary.save"))
+        with allure.step("Sélectionner le pays"):
+            country_dropdown = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.NAME, "order[billing_address][country_id]"))
             )
-            save_button.click()
-            time.sleep(5)
-            save_and_new_button = WebDriverWait(driver, 10).until(
-                EC.element_to_be_clickable((By.ID, "save_and_new"))
-            )
-            save_and_new_button.click()
-            time.sleep(120)
-            self.take_screenshot(driver, "product_saved_and_new.png")
-            print("Produit enregistré avec succès avec l'option 'Save and New'.")
+            select_country = Select(country_dropdown)
+            select_country.select_by_value("TN")  # Assurez-vous que la valeur correspond exactement
+            self.take_screenshot(driver, "billing_country_selected.png")
+            time.sleep(2)
 
-        with allure.step("Revenir à la page des produits"):
-            back_button = WebDriverWait(driver, 10).until(
-                EC.element_to_be_clickable((By.ID, "back"))
+        
+    def submit_order(self, driver):
+        with allure.step("Soumettre la commande"):
+            submit_order_button = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.ID, "submit_order_top_button"))
             )
-            back_button.click()
-            time.sleep(120)
-            self.take_screenshot(driver, "returned_to_products_page.png")
-            print("Retour à la page des produits effectué avec succès.")
+            submit_order_button.click()
+            self.take_screenshot(driver, "order_submitted.png")
+            print("Commande soumise avec succès.")
 
     def handle_error(self, driver, exception):
         self.take_screenshot(driver, "error.png")
